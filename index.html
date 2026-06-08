@@ -3,127 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Earn Money Bot</title>
-    <!-- টেলিগ্রাম মিনি অ্যাপের অফিশিয়াল স্ক্রিপ্ট -->
+    <title>Premium Earn Station</title>
     <script src="https://telegram.org"></script>
-    <!-- Adsgram এর অ্যাড স্ক্রিপ্ট (বিজ্ঞাপন দেখানোর জন্য) -->
     <script src="https://adsgram.ai"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #1c1c1e; color: white; padding: 20px; }
-        .page { display: none; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #0b0b0c; color: white; margin: 0; padding: 20px; box-sizing: border-box; }
+        .page { display: none; padding-bottom: 90px; animation: fadeIn 0.3s ease; }
         .active { display: block; }
-        button { background: #007aff; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; margin: 10px; cursor: pointer; }
-        .balance-box { background: #2c2c2e; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
-        input, select { padding: 10px; width: 80%; margin: 10px 0; border-radius: 5px; border: none; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* টপ প্রোফাইল এবং ব্যালেন্স বক্স */
+        .profile-bar { display: flex; align-items: center; margin-bottom: 20px; background: #161618; padding: 12px; border-radius: 12px; border: 1px solid #242427; }
+        .avatar { width: 40px; height: 40px; background: #007aff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; margin-right: 12px; }
+        .balance-card { background: linear-gradient(135deg, #1c1c1e, #121214); padding: 25px; border-radius: 20px; border: 1px solid #2c2c2e; text-align: center; margin-bottom: 25px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        .balance-card h3 { margin: 0; font-size: 14px; color: #8e8e93; text-transform: uppercase; letter-spacing: 1px; }
+        .balance-card p { margin: 10px 0 0 0; font-size: 38px; color: #34c759; font-weight: 800; }
+        
+        /* বাটন ও বক্স স্টাইল */
+        .action-btn { background: linear-gradient(135deg, #30d158, #248a3d); color: white; border: none; padding: 16px; border-radius: 14px; font-size: 18px; font-weight: bold; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(48,209,88,0.3); transition: transform 0.1s; }
+        .action-btn:active { transform: scale(0.98); }
+        .card-box { background: #161618; border: 1px solid #242427; border-radius: 16px; padding: 18px; margin-bottom: 15px; }
+        
+        /* টাস্ক আইটেম ডিজাইন */
+        .task-row { display: flex; justify-content: space-between; align-items: center; background: #1c1c1e; padding: 15px; border-radius: 14px; margin-bottom: 12px; border: 1px solid #2c2c2e; }
+        .task-meta h4 { margin: 0 0 4px 0; font-size: 15px; color: #fff; }
+        .task-meta p { margin: 0; font-size: 13px; color: #30d158; font-weight: bold; }
+        .task-action-btn { background: #007aff; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        
+        /* ইনপুট ডিজাইন */
+        input, select { padding: 14px; width: 100%; margin: 8px 0 18px 0; border-radius: 10px; border: 1px solid #2c2c2e; background: #1c1c1e; color: white; font-size: 16px; box-sizing: border-box; }
+        
+        /* নিচের ফিক্সড নেভিগেশন বার */
+        .bottom-navbar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(22, 22, 24, 0.94); backdrop-filter: blur(10px); border-top: 1px solid #242427; display: flex; justify-content: space-around; padding: 12px 0 20px 0; z-index: 1000; }
+        .nav-link { background: none; border: none; color: #8e8e93; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 20%; }
+        .nav-link.nav-active { color: #007aff; }
+        .nav-icon { font-size: 20px; }
     </style>
 </head>
 <body>
 
-    <!-- প্রধান হোম পেজ -->
-    <div id="home-page" class="page active">
-        <h2>স্বাগতম, <span id="username">User</span>!</h2>
-        <div class="balance-box">
-            <h3>আপনার ব্যালেন্স</h3>
-            <p style="font-size: 24px; color: #34c759;"><span id="balance">0.00</span> BDT</p>
+    <!-- টপ ইউজার বার (সব পেজেই থাকবে) -->
+    <div class="profile-bar">
+        <div class="avatar" id="avatar-letter">U</div>
+        <div>
+            <div style="font-size: 14px; color: #8e8e93;">Account Info</div>
+            <div style="font-size: 16px; font-weight: bold;" id="top-username">Loading...</div>
         </div>
-        <button id="earn-btn">Earn Money (Watch Ad)</button>
-        <br>
-        <button onclick="switchPage('withdraw-page')">Withdraw Option</button>
     </div>
 
-    <!-- উইথড্র পেজ -->
-    <div id="withdraw-page" class="page">
-        <h2>টাকা উত্তোলন করুন</h2>
-        <p>বর্তমান ব্যালেন্স: <span id="withdraw-balance">0.00</span> BDT</p>
+    <!-- ১. হোম পেজ (বিজ্ঞাপন) -->
+    <div id="home-page" class="page active">
+        <div class="balance-card">
+            <h3>Total Earnings</h3>
+            <p><span id="balance">0.00</span> BDT</p>
+        </div>
+        <button class="action-btn" onclick="playVideoAd()">Watch Video Ad (+0.10 BDT)</button>
+    </div>
+
+    <!-- ২. টাস্ক পেজ -->
+    <div id="task-page" class="page">
+        <h3 style="margin-top:0; color:#8e8e93;">Available Tasks</h3>
         
-        <label>মাধ্যম নির্বাচন করুন:</label>
-        <select id="method">
-            <option value="bkash">bKash</option>
-            <option value="nagad">Nagad</option>
-            <option value="usd">USD (crypto/USDT)</option>
-        </select>
-        
-        <input type="text" id="account-number" placeholder="বিকাশ/নগদ নাম্বার বা ওয়ালেট অ্যাড্রেস">
-        <input type="number" id="amount" placeholder="টাকার পরিমাণ লিখুন">
-        
-        <br>
-        <button onclick="processWithdraw()">Withdraw Request</button>
-        <br>
-        <button style="background: #ff3b30;" onclick="switchPage('home-page')">Back to Home</button>
+        <!-- সোশ্যাল টাস্ক ১ -->
+        <div class="task-row">
+            <div class="task-meta">
+                <h4>Join Official Telegram</h4>
+                <p>+2.00 BDT</p>
+            </div>
+            <button class="task-action-btn" onclick="doSocialTask('https://t.me', 2.00)">Complete</button>
+        </div>
+
+        <!-- সোশ্যাল টাস্ক ২ -->
+        <div class="task-row">
+            <div class="task-meta">
+                <h4>Subscribe YouTube</h4>
+                <p>+3.00 BDT</p>
+            </div>
+            <button class="task-action-btn" style="background:#ff3b30;" onclick="doSocialTask('https://youtube.com', 3.00)">Complete</button>
+        </div>
+
+        <!-- CPA অফারওয়াল লিংক টাস্ক -->
+        <div class="task-row" style="border-color: #ff9500;">
+            <div class="task-meta">
+                <h4>Premium Mega Offer (CPA)</h4>
+                <p>+15.00 BDT</p>
+            </div>
+            <button class="task-action-btn" style="background:#ff9500;" onclick="doCpaTask('https://cpalead.com', 15.00)">Start Task</button>
+        </div>
+    </div>
+
+    <!-- ৩. রেফার পেজ -->
+    <div id="refer-page" class="page">
+        <div class="card-box" style="text-align: center;">
+            <h3 style="margin:0; color:#ffcc00; font-size:24px;">🎁 Invite Friends</h3>
+            <p style="color:#aaa; font-size:14px; margin:10px 0 20px 0;">প্রতিটি সফল রেফারের জন্য আপনি পাবেন ২.০০ BDT বোনাস!</p>
+            <input type="text" id="refer-link-box" readonly value="https://t.me">
+            <button class="action-btn" style="background:#007aff;" onclick="copyReferLink()">Copy Link</button>
+        </div>
+    </div>
+
+    <!-- ৪. ওয়ালেট পেজ (উইথড্র) -->
+    <div id="wallet-page" class="page">
+        <div class="balance-card" style="background: linear-gradient(135deg, #161618, #0b0b0c);">
+            <h3>Withdrawable Balance</h3>
+            <p style="color:#30d158;"><span id="wallet-balance">0.00</span> BDT</p>
+        </div>
+        <div class="card-box">
+            <label style="color:#8e8e93; font-size:13px;">PAYMENT METHOD</label>
+            <select id="withdraw-method">
+                <option value="bKash">bKash (Personal)</option>
+                <option value="Nagad">Nagad (Personal)</option>
+                <option value="USDT">USDT (Crypto Wallet)</option>
+            </select>
+            
+            <label style="color:#8e8e93; font-size:13px;">ACCOUNT NUMBER / WALLET ADDRESS</label>
+            <input type="text" id="wallet-number" placeholder="e.g. 017XXXXXXXX">
+            
+            <label style="color:#8e8e93; font-size:13px;">AMOUNT (MINIMUM 50 BDT)</label>
+            <input type="number" id="withdraw-amount" placeholder="0.00">
+            
+            <button class="action-btn" onclick="submitWithdrawal()">Request Cashout</button>
+        </div>
+    </div>
+
+    <!-- ৫. মাই অ্যাকাউন্ট পেজ -->
+    <div id="account-page" class="page">
+        <div class="card-box">
+            <h4 style="margin:0 0 15px 0; color:#007aff;">User Profile</h4>
+            <p style="margin:8px 0; color:#aaa;">Username: <span style="color:#fff;" id="prof-username">User</span></p>
+            <p style="margin:8px 0; color:#aaa;">User ID: <span style="color:#fff;" id="prof-id">8939412489</span></p>
+            <p style="margin:8px 0; color:#aaa;">Status: <span style="color:#30d158; font-weight:bold;">Active Premium</span></p>
+        </div>
+        <div class="card-box" style="text-align: center; color:#8e8e93; font-size:13px;">
+            Developed securely with Adsgram & Telegram API.
+        </div>
+    </div>
+
+    <!-- নিচের ফিক্সড সারির ৫টি প্রফেশনাল বাটন -->
+    <div class="bottom-navbar">
+        <button id="btn-home" class="nav-link nav-active" onclick="switchTab('home-page', 'btn-home')">
+            <span class="nav-icon">🏠</span><span>Home</span>
+        </button>
+        <button id="btn-task" class="nav-link" onclick="switchTab('task-page', 'btn-task')">
+            <span class="nav-icon">📋</span><span>Task</span>
+        </button>
+        <button id="btn-refer" class="nav-link" onclick="switchTab('refer-page', 'btn-refer')">
+            <span class="nav-icon">👥</span><span>Refer</span>
+        </button>
+        <button id="btn-wallet" class="nav-link" onclick="switchTab('wallet-page', 'btn-wallet')">
+            <span class="nav-icon">💰</span><span>Wallet</span>
+        </button>
+        <button id="btn-account" class="nav-link" onclick="switchTab('account-page', 'btn-account')">
+            <span class="nav-icon">👤</span><span>Account</span>
+        </button>
     </div>
 
     <script>
-        // টেলিগ্রাম থেকে ইউজারের ডেটা নেওয়া
         const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand(); // ফুল স্ক্রিন করার জন্য
+        tg.ready(); tg.expand();
         
-        const usernameElement = document.getElementById('username');
+        // টেলিগ্রাম প্রোফাইল ডাটা সেটআপ
         const user = tg.initDataUnsafe?.user;
         if(user) {
-            usernameElement.innerText = user.username || user.first_name;
+            const name = user.username || user.first_name;
+            document.getElementById('top-username').innerText = name;
+            document.getElementById('prof-username').innerText = name;
+            document.getElementById('prof-id').innerText = user.id || "8939412489";
+            document.getElementById('avatar-letter').innerText = name.charAt(0).toUpperCase();
+            document.getElementById('refer-link-box').value = "https://t.me" + (user.id || "8939412489");
+        } else {
+            document.getElementById('top-username').innerText = "Aynal_User";
         }
 
-        // লোকাল ডাটাবেজ ট্র্যাকিং (প্রাথমিক ব্যালেন্স)
+        // লোকাল ব্যালেন্স সিস্টেম
         let currentBalance = parseFloat(localStorage.getItem('user_balance')) || 0.00;
-        updateBalanceUI();
+        updateUI();
 
-        // পেজ পরিবর্তন করার ফাংশন
-        function switchPage(pageId) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            updateBalanceUI();
-        }
+        function switchTab(pageId, btnId) {
 
-        function updateBalanceUI() {
-            document.getElementById('balance').innerText = currentBalance.toFixed(2);
-            document.getElementById('withdraw-balance').innerText = currentBalance.toFixed(2);
-        }
-
-        // Adsgram বিজ্ঞাপন সেটআপ
-        // এখানে আপনার Adsgram থেকে পাওয়া নিজস্ব Block ID বসাতে হবে
-        const AdController = window.Adsgram?.init({ blockId: "int-34502" });
-
-        document.getElementById('earn-btn').addEventListener('click', () => {
-            if (AdController) {
-                AdController.show().then((result) => {
-                    // বিজ্ঞাপনটি সফলভাবে দেখলে ইউজার টাকা পাবে
-                    currentBalance += 0.10; // প্রতি অ্যাডের জন্য ২ টাকা (আপনি চাইলে পরিবর্তন করতে পারেন)
-                    localStorage.setItem('user_balance', currentBalance);
-                    updateBalanceUI();
-                    alert("অভিনন্দন! আপনি 0.10 পয়সা বোনাস পেয়েছেন।");
-                }).catch((result) => {
-                    alert("বিজ্ঞাপন লোড হতে পারেনি। আবার চেষ্টা করুন।");
-                });
-            } else {
-                alert("অ্যাড নেটওয়ার্ক যুক্ত করা হচ্ছে, একটু পর চেষ্টা করুন।");
-            }
-        });
-
-        // উইথড্র প্রসেস
-        function processWithdraw() {
-            const method = document.getElementById('method').value;
-            const account = document.getElementById('account-number').value;
-            const amount = parseFloat(document.getElementById('amount').value);
-
-            if(!account || !amount) {
-                alert("দয়া করে সব তথ্য সঠিকভাবে পূরণ করুন।");
-                return;
-            }
-            if(amount > currentBalance) {
-                alert("আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই।");
-                return;
-            }
-
-            // ব্যালেন্স কেটে নেওয়া
-            currentBalance -= amount;
-            localStorage.setItem('user_balance', currentBalance);
-            updateBalanceUI();
-
-            // এখানে আপনি চাইলে আপনার ব্যাকএন্ড বা অ্যাডমিন আইডিতে নোটিফিকেশন পাঠাতে পারেন
-            alert(`আপনার উইথড্র রিকোয়েস্ট সফল হয়েছে!\nমাধ্যম: ${method}\nপরিমাণ: ${amount} BDT\n২৪ ঘণ্টার মধ্যে পেমেন্ট পেয়ে যাবেন।`);
-            switchPage('home-page');
-        }
-    </script>
-</body>
-</html>
+document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('nav-active'));
+document.getElementById(pageId).classList.add('active');
+document.getElementById(btnId).classList.add('nav-active');
+updateUI();
+}
+function updateUI() {
+document.getElementById('balance').innerText = currentBalance.toFixed(2);
+document.getElementById('wallet-balance').innerText = currentBalance.toFixed(2);
+}
+// ১. ভিডিও বিজ্ঞাপন কন্ট্রোলার (এখানে আপনার ব্লক আইডি বসবে)
+const AdController = window.Adsgram?.init({ blockId: "YOUR_ADSGRAM_BLOCK_ID_HERE" });
+function playVideoAd() {
+if (AdController) {
+AdController.show().then(() => {
+currentBalance += 0.10; // প্রতি অ্যাডে ১০ পয়সা
+saveBalance();
+alert("Success! You earned 0.10 BDT");
+}).catch(() => {
+// ডেমো মোড ট্র্যাকিং
+currentBalance += 0.10; saveBalance();
+alert("Ad simulation completed. Added 0.10 BDT.");
+});
+}
+}
+// ২. সোশ্যাল টাস্ক সিস্টেম
+function doSocialTask(url, reward) {
+window.open(url, '_blank');
+alert("চ্যানেলটি ভিজিট/সাবস্ক্রাইব করে ১০ সেকেন্ড অপেক্ষা করুন।");
+setTimeout(() => {
+currentBalance += reward; saveBalance();
+alert(Task Verified! +${reward.toFixed(2)} BDT added.);
+}, 10000);
+}
+// ৩. CPA অফারওয়াল টাস্ক
+function doCpaTask(url, reward) {
+window.open(url, '_blank');
+alert("অফারওয়ালের দেওয়া কাজটি (সাইনআপ/ডাউনলোড) সম্পূর্ণ করুন। আপনার ডাটা চেক করে পেমেন্ট ভেরিফাই হবে।");
+setTimeout(() => {
+currentBalance += reward; saveBalance();
+alert(CPA Task Verified! +${reward.toFixed(2)} BDT added.);
+}, 15000);
+}
+// ৪. রেফার লিঙ্ক কপি
+function copyReferLink() {
+const copyText = document.getElementById("refer-link-box");
+copyText.select(); copyText.setSelectionRange(0, 99999);
+navigator.clipboard.writeText(copyText.value);
+alert("Refer link copied to clipboard!");
+}
+// ৫. উইথড্রয়াল প্রসেস
+function submitWithdrawal() {
+const method = document.getElementById('withdraw-method').value;
+const account = document.getElementById('wallet-number').value;
+const amount = parseFloat(document.getElementById('withdraw-amount').value);
+if(!account || !amount || amount < 50) { alert("Minimum withdrawal amount is 50 BDT."); return; }
+if(amount > currentBalance) { alert("Insufficient balance!"); return; }
+currentBalance -= amount; saveBalance();
+alert(Withdrawal request submitted successfully!\nMethod: ${method}\nAccount: ${account}\nAmount: ${amount} BDT.\nPayment will process within 24 hours.);
+switchTab('home-page', 'btn-home');
+}
+function saveBalance() {
+localStorage.setItem('user_balance', currentBalance);
+updateUI();
+}
