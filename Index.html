@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earn Money Bot</title>
+    <!-- টেলিগ্রাম মিনি অ্যাপের অফিশিয়াল স্ক্রিপ্ট -->
+    <script src="https://telegram.org"></script>
+    <!-- Adsgram এর অ্যাড স্ক্রিপ্ট (বিজ্ঞাপন দেখানোর জন্য) -->
+    <script src="https://adsgram.ai"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #1c1c1e; color: white; padding: 20px; }
+        .page { display: none; }
+        .active { display: block; }
+        button { background: #007aff; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; margin: 10px; cursor: pointer; }
+        .balance-box { background: #2c2c2e; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        input, select { padding: 10px; width: 80%; margin: 10px 0; border-radius: 5px; border: none; }
+    </style>
+</head>
+<body>
+
+    <!-- প্রধান হোম পেজ -->
+    <div id="home-page" class="page active">
+        <h2>স্বাগতম, <span id="username">User</span>!</h2>
+        <div class="balance-box">
+            <h3>আপনার ব্যালেন্স</h3>
+            <p style="font-size: 24px; color: #34c759;"><span id="balance">0.00</span> BDT</p>
+        </div>
+        <button id="earn-btn">Earn Money (Watch Ad)</button>
+        <br>
+        <button onclick="switchPage('withdraw-page')">Withdraw Option</button>
+    </div>
+
+    <!-- উইথড্র পেজ -->
+    <div id="withdraw-page" class="page">
+        <h2>টাকা উত্তোলন করুন</h2>
+        <p>বর্তমান ব্যালেন্স: <span id="withdraw-balance">0.00</span> BDT</p>
+        
+        <label>মাধ্যম নির্বাচন করুন:</label>
+        <select id="method">
+            <option value="bkash">bKash</option>
+            <option value="nagad">Nagad</option>
+            <option value="usd">USD (crypto/USDT)</option>
+        </select>
+        
+        <input type="text" id="account-number" placeholder="বিকাশ/নগদ নাম্বার বা ওয়ালেট অ্যাড্রেস">
+        <input type="number" id="amount" placeholder="টাকার পরিমাণ লিখুন">
+        
+        <br>
+        <button onclick="processWithdraw()">Withdraw Request</button>
+        <br>
+        <button style="background: #ff3b30;" onclick="switchPage('home-page')">Back to Home</button>
+    </div>
+
+    <script>
+        // টেলিগ্রাম থেকে ইউজারের ডেটা নেওয়া
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand(); // ফুল স্ক্রিন করার জন্য
+        
+        const usernameElement = document.getElementById('username');
+        const user = tg.initDataUnsafe?.user;
+        if(user) {
+            usernameElement.innerText = user.username || user.first_name;
+        }
+
+        // লোকাল ডাটাবেজ ট্র্যাকিং (প্রাথমিক ব্যালেন্স)
+        let currentBalance = parseFloat(localStorage.getItem('user_balance')) || 0.00;
+        updateBalanceUI();
+
+        // পেজ পরিবর্তন করার ফাংশন
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            updateBalanceUI();
+        }
+
+        function updateBalanceUI() {
+            document.getElementById('balance').innerText = currentBalance.toFixed(2);
+            document.getElementById('withdraw-balance').innerText = currentBalance.toFixed(2);
+        }
+
+        // Adsgram বিজ্ঞাপন সেটআপ
+        // এখানে আপনার Adsgram থেকে পাওয়া নিজস্ব Block ID বসাতে হবে
+        const AdController = window.Adsgram?.init({ blockId: "YOUR_ADSGRAM_BLOCK_ID_HERE" });
+
+        document.getElementById('earn-btn').addEventListener('click', () => {
+            if (AdController) {
+                AdController.show().then((result) => {
+                    // বিজ্ঞাপনটি সফলভাবে দেখলে ইউজার টাকা পাবে
+                    currentBalance += 2.00; // প্রতি অ্যাডের জন্য ২ টাকা (আপনি চাইলে পরিবর্তন করতে পারেন)
+                    localStorage.setItem('user_balance', currentBalance);
+                    updateBalanceUI();
+                    alert("অভিনন্দন! আপনি ২ টাকা বোনাস পেয়েছেন।");
+                }).catch((result) => {
+                    alert("বিজ্ঞাপন লোড হতে পারেনি। আবার চেষ্টা করুন।");
+                });
+            } else {
+                alert("অ্যাড নেটওয়ার্ক যুক্ত করা হচ্ছে, একটু পর চেষ্টা করুন।");
+            }
+        });
+
+        // উইথড্র প্রসেস
+        function processWithdraw() {
+            const method = document.getElementById('method').value;
+            const account = document.getElementById('account-number').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+
+            if(!account || !amount) {
+                alert("দয়া করে সব তথ্য সঠিকভাবে পূরণ করুন।");
+                return;
+            }
+            if(amount > currentBalance) {
+                alert("আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই।");
+                return;
+            }
+
+            // ব্যালেন্স কেটে নেওয়া
+            currentBalance -= amount;
+            localStorage.setItem('user_balance', currentBalance);
+            updateBalanceUI();
+
+            // এখানে আপনি চাইলে আপনার ব্যাকএন্ড বা অ্যাডমিন আইডিতে নোটিফিকেশন পাঠাতে পারেন
+            alert(`আপনার উইথড্র রিকোয়েস্ট সফল হয়েছে!\nমাধ্যম: ${method}\nপরিমাণ: ${amount} BDT\n২৪ ঘণ্টার মধ্যে পেমেন্ট পেয়ে যাবেন।`);
+            switchPage('home-page');
+        }
+    </script>
+</body>
+</html>
