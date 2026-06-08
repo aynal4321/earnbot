@@ -82,16 +82,16 @@
 
         // Adsgram বিজ্ঞাপন সেটআপ
         // এখানে আপনার Adsgram থেকে পাওয়া নিজস্ব Block ID বসাতে হবে
-        const AdController = window.Adsgram?.init({ blockId: "YOUR_ADSGRAM_BLOCK_ID_HERE" });
+        const AdController = window.Adsgram?.init({ blockId: "int-34502" });
 
         document.getElementById('earn-btn').addEventListener('click', () => {
             if (AdController) {
                 AdController.show().then((result) => {
                     // বিজ্ঞাপনটি সফলভাবে দেখলে ইউজার টাকা পাবে
-                    currentBalance += 2.00; // প্রতি অ্যাডের জন্য ২ টাকা (আপনি চাইলে পরিবর্তন করতে পারেন)
+                    currentBalance += 0.10; // প্রতি অ্যাডের জন্য ২ টাকা (আপনি চাইলে পরিবর্তন করতে পারেন)
                     localStorage.setItem('user_balance', currentBalance);
                     updateBalanceUI();
-                    alert("অভিনন্দন! আপনি ২ টাকা বোনাস পেয়েছেন।");
+                    alert("অভিনন্দন! আপনি 0.10 পয়সা বোনাস পেয়েছেন।");
                 }).catch((result) => {
                     alert("বিজ্ঞাপন লোড হতে পারেনি। আবার চেষ্টা করুন।");
                 });
